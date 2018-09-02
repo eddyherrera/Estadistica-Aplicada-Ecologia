@@ -1,0 +1,157 @@
+---
+title: "Solución Parcial"
+author: "Eddy Herrera Daza"
+date: "26 de agosto de 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Punto 1
+Se sospecha que las aguas de un lago están contaminadas por los compuestos fosforados procedentes de una industria de fertilizantes. Para tratar de verificar esta sospecha, se midieron los niveles de fósforo en distintos puntos del lago, obteniéndose los siguientes valores:
+```{r,echo=T}
+Lago_A=c(7.1, 8.5, 9.2, 7.3, 7.9, 8.8, 7.6, 7.8, 8.1, 6.3, 6.6, 7.3, 7.9, 6.2, 7.1)
+Lago_B=c(7.1, 6.5, 5.9, 5.8, 5.9, 6.4, 6.8, 5.1, 6.2, 6.1, 5.2, 6.6, 6.3, 7.4, 6.6)
+Lago_c=c(5.6, 7.1, 6.3, 5.7, 6.5, 6.5, 5.9, 6.8, 5.9, 6.1, 6.4, 6.6, 6.3, 5.6, 4.9)
+```
+
+Los valores obtenidos en el  lago bajo sospecha parecen ser algo superiores a los obtenidos en los otros dos.  ¿Es suficientemente importante esta diferencia como para poder concluir que el nivel de fosforo en el lago A es significativamente diferente que el que tienen los demás, y por tanto está contaminado?  
+b. Se cumple el principio de homocedasticidad? Justifique su respuesta  
+  
+\begin{equation}
+    	H_{0}: \sigma^{2}_{A}=\sigma^{2}_{B}=\sigma^{2}_{C}
+    	\end{equation} 
+    	\begin{equation}
+    	H_{1}: \sigma^{2}_{A} \neq \sigma^{2}_{B}; \sigma^{2}_{A}  \neq \sigma^{2}_{C}
+    	\end{equation}  
+Para verificar si se rechaza o no $H_{0}$ se debe verificar varios supuestos. Por lo general, si no se puede alcanzar cierta seguridad de que las poblaciones que se comparan son de tipo normal, es recomendable recurrir a test que comparen la mediana de la varianza.  
+
+**Test de Levene** se puede aplicar con la función leveneTest() del paquete car. Se caracteriza, además de por poder comparar 2 o más poblaciones, por permitir elegir entre diferentes estadísticos de centralidad :mediana (por defecto), media, media truncada. Esto es importante a la hora de contrastar la homocedasticidad dependiendo de si los grupos se distribuyen de forma normal o no.
+```{r,echo=T}
+library(car)
+Lago_B=factor(Lago_B)
+Lago_c=factor(Lago_c)
+leveneTest(y = Lago_A, group = Lago_c, center = "median")
+```
+Comparación entre el lago A y el lago C: ** hay diferencias significativas entre las varianzas de los dos grupos, $\rho-value<\alpha$. Por otro lado, cuando comparamos los resultados del lago A con el lago B se tiene 
+```{r,echo=T}
+leveneTest(y = Lago_A, group = Lago_B, center = "median")
+```
+Comparación entre el lago A y el lago B: Hay diferencias significativas entre las varianzas de los dos grupos, $\rho-value<\alpha$    
+**Conclusión**: No se cumple el principio de homocedasticidad.  
+Teniendo en cuenta el resultado anterior, se realiza una prueba no paramétrica:Kruskall-Wallis  
+\textbf{Solución}:  
+
+		\textbf{$H_{0}$}: El nivel mediano de los niveles de fósforo del lago A es igual al de los otros dos lagos.  
+		
+		\textbf{$H_{0}$}:  El nivel mediano de niveles de fósforo del lago A difiere de los niveles del lago B o C o ambos
+```{r,echo=T}
+kruskal.test(Lago_A ~ Lago_c)
+
+```
+Como podemos ver, No se rechaza $H_{0}$ es decir, los niveles de fósforo asociados a la contaminación en el lago A y C son iguales.
+```{r,echo=T}
+kruskal.test(Lago_A ~ Lago_B)
+```
+Como podemos ver, No se rechaza $H_{0}$ es decir,  los niveles de fósforo asociados a la contaminación en el lago A y B son iguales.  
+
+**Conclusión** Los niveles medianos de fósforo de los lagos control con el lago A No son significativamente   
+  
+## Punto 2  
+
+En "Experimental Design and Data Analysis for Biologists", de G.P. Quinn y M.J. Keough, (capitulo 9) , se usan los datos de un estudio de Quinn, G. P. (1988). "Ecology of the intertidal pulmonate limpet Siphonaria Diemenensis", Journal of experimental marine biology and ecology, vol. 117, no2, pp. 115-136.) sobre los efectos que tienen los factores: estación del año y   la densidad de ejemplares adultos, sobre la variable respuesta dada por producción de huevos en la especie Siphonaria Diemenensis.  
+ 
+ Utilizando el archivo "quinn" y asumiendo que se cumplen los requisitos realice un análisis de varianza y resuelva:
+
+```{r,echo=T}
+quinn=read.table("C:/Users/lenovo/Downloads/quinn.txt",header = T)
+quinn
+```
+a. Determinar si las variaciones en la producción de huevos son significativamente diferentes, en las diferentes estaciones del año.\\
+ 	 Sea $y=$ la producción de huevos la variable respuesta y sean los factores:  \textcolor{red}{E:Estación del año} y  \textcolor{red}{ Densidad de ejemplares adultos}
+ 	 	\begin{equation}
+ 	 H_{0}: \mu_{y}=\mu_{E}
+ 	 \end{equation} 
+ 	 \begin{equation}
+ 	 H_{1}: \mu{y} \neq \mu{E}
+ 	 \end{equation}
+```{r,echo=T}
+anova_punto2=aov(EGGS~SEASON,data=quinn)
+summary(anova_punto2)
+
+```
+
+b. Determinar si las variaciones en la producción de huevos son significativamente diferentes en diferentes densidades poblacionales  
+```{r,echo=T}
+quinn$DENSITY=factor(quinn$DENSITY)
+anova_punto2b=aov(EGGS~DENSITY,data=quinn)
+summary(anova_punto2b)
+```
+Realizando una \textbf{ANOVA} donde EGGS $\sim$ DENSITY o $Y \sim D$ se obtiene que el $p$ values es de 0.00607 siendo significativo y hace que  se rechace la hipótesis nula. Es decir, que hay diferencias significativas en la producción de huevos debido al efecto de la densidad poblacional   
+c. Si el ítem a ó b  es afirmativo, donde hay mayor diferencia en la producción de huevos entre que niveles de un mismo factor  
+```{r,echo=T}
+TukeyHSD(anova_punto2)
+```
+Luego la diferencia en la producción de huevos entre verano y primavera es de 0.736 
+```{r,echo=T}
+TukeyHSD(anova_punto2b)
+```
+Los resultados de la prueba muestran que la producción de huevos tiene una diferencia significativa de 1.2288333 absoluta entre la densidad 45 y 8. Para el factor estación la diferencia entre verano y primavera es de 0.736  
+d. Determinar si las variaciones en la producción de huevos son significativamente diferentes, si se consideran las interacciones entre los factores nada más
+```{r,echo=T}
+anova_punto2d=aov(EGGS~DENSITY*SEASON,data=quinn)
+summary(anova_punto2d)
+```
+Teniendo en cuenta el modelo de iteración: EGGS $\sim$ SEASON $\textasteriskcentered$ DENSITY, la interación entre los factores no es significativa  
+e.	Determinar si las variaciones en la producción de huevos son significativamente diferentes, cuando se considera los efectos de los factores
+```{r,echo=T}
+anova_punto2e=aov(EGGS~DENSITY+SEASON,data=quinn)
+summary(anova_punto2e)
+```
+Teniendo en cuenta el modelo de iteración: EGGS $\sim$ SEASON $+$ DENSITY, la suma de los efectos de los factores es significativa  
+
+## Punto 3  
+
+El rendimiento de una cosecha de cereal se considera bueno si es superior a 15 kg por área de cultivo y malo si no llega a dicha cantidad. Se hacen determinaciones en parcelas donde se ha sembrado cereales de tipo A y cereales tipo B y se clasifican como se muestra en la
+tabla ¿Son igualmente efectivos para el cultivo los cereales A y B?. justifique su respuesta
+```{r,echo=T}
+datos_punto3<-matrix(c(40,98,50,75),nrow=2,byrow=T) 
+dimnames(datos_punto3)<-list(c("M","B"), c("A","B")) 
+datos_punto3
+```
+ $H_{0}$: Clase Independiente del tipo de cereal  
+ 
+    
+    $H_{1}$: La clase No es independiente del tipo de cereal
+```{r}
+prueba_punto3=chisq.test(datos_punto3)
+prueba_punto3
+```
+La prueba que se aplicará es Chi.cuadrado, el resultado de la prueba con p-value = 0.08011 mayor que el valor de significancia $\alpha$ indica que No se rechaza la hipótesis nula, osea que no hay evidencias significativas que indiquen que hay dependencia entre los factores  
+  
+## Punto 4
+Descargar el data de R CO2. El marco de datos de CO2 tiene 84 filas y 5 columnas de datos de un experimento sobre la tolerancia al frío de la especie de pasto Echinochloa crus-galli. 
+```{r,echo=T}
+CO2
+head(CO2)
+```
+Asumiendo que se cumplen los requisitos realice un análisis de varianza y determine si:  
+
+a. las tasas de absorción de dióxido de carbono son significativamente diferentes si consideramos el origen de la planta y el tratamiento.
+```{r,echo=T}
+anova_punto4=aov(uptake~Treatment+Type,data=CO2)
+summary(anova_punto4)
+```
+Teniendo en cuenta que el valor $p <\alpha$ tanto para el factor tipo como para el tratamiento entonces, la tasa de absorción varia  significativamente debido a estos dos factores: uptake $\sim $Treatment+Type  
+
+b. las concentraciones de dióxido de carbono son significativamente diferentes, si consideramos el origen de la planta y el tratamiento
+```{r,echo=T}
+anova_punto4b=aov(conc~Treatment+Type,data=CO2)
+summary(anova_punto4b)
+```
+Teniendo en cuenta que el valor $p >\alpha$ tanto para el factor tipo como para el tratamiento entonces, la concentración de dioxido de carbono No varia  significativamente debido a estos dos factores. Por lo tanto, no se rechaza la hipótesis nula   
+ 
+ 
+c. Teniendo en cuenta, la respuesta de a y b en que niveles hay diferencias significativas?
